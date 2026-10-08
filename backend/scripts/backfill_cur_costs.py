@@ -2,9 +2,10 @@ import sqlite3
 import csv
 import json
 import sys
+import os
 
 def main():
-    db_path = 'd:/FinOpsDashboard/backend/data/finops_v4.db'
+    db_path = os.environ.get("DATABASE_PATH", "d:/FinOpsDashboard/backend/data/finops_v4.db")
     csv_path = 'd:/FinOpsDashboard/backend/data/FinOpstestkarthik-00001.csv'
 
     print("Loading CUR data...")

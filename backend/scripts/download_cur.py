@@ -4,7 +4,8 @@ import boto3
 import sys
 
 def main():
-    conn = sqlite3.connect('d:/FinOpsDashboard/backend/data/finops_v4.db')
+    db_path = os.environ.get("DATABASE_PATH", "d:/FinOpsDashboard/backend/data/finops_v4.db")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('SELECT aws_access_key_id, aws_secret_access_key, aws_session_token, region FROM cloud_configs WHERE aws_access_key_id IS NOT NULL LIMIT 1')
     row = cursor.fetchone()
