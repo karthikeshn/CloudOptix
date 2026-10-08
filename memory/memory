@@ -1,0 +1,46 @@
+# Cloud Optix (formerly FinOpsDashboard) Project Memory
+
+## Overview
+Cloud Optix is an enterprise full-stack web application designed for cloud financial operations (FinOps) and cost optimization across AWS cloud infrastructure. It provides real-time infrastructure scanning matched with official AWS Cost and Usage Report (CUR) data to provide exact cost-savings insights and manages the entire remediation lifecycle via a built-in Approval Workflow ticketing system.
+
+It consists of a Python FastAPI backend and a React 19 / Vite frontend.
+
+## Key Architecture & Components
+
+### 1. Backend (`d:\FinOpsDashboard\backend`)
+- **Framework**: FastAPI with Uvicorn server (`uvicorn main:app --reload`)
+- **Database & ORM**: SQLite (`finops.db`) with SQLAlchemy ORM
+- **Authentication & RBAC**: JWT authentication (`auth.py`) with `passlib[bcrypt]` hashing. Users have strict roles: `admin`, `manager`, and `engineer`.
+- **Database Models (`models.py`)**:
+  - `User`: User accounts (`username`, `hashed_password`, `role`, `is_active`)
+  - `CloudConfig`: Cloud provider credentials & connection details.
+  - `Ticket`: Core FinOps finding. Contains resource details, status (`Pending`, `Approved`, `Assigned`, `Completed`, `Rejected`), `potential_savings`, and assignee data.
+  - `ScriptValidation`: AST code validation records.
+- **Data Integration & Pricing**: 
+  - AWS Cost and Usage Report (CUR) integration cross-references discovered idle/unoptimized resource IDs directly against live billing data for 100% accurate financial impact.
+  - Modular Pricing Engine: Separates calculation logic to accurately differentiate between complete resource deletions (100% savings) and resource optimizations/migrations (price difference).
+
+### 2. FinOps Script Engine & Validation
+- **Script Repository (`backend/scripts/`)**: Over 60 specialized FinOps Python scripts analyzing AWS resources (EC2, EBS, S3, RDS, CloudFront, EKS, etc.) for cost optimization opportunities.
+- **AST Security Sandbox**: `main.py` parses scripts using Python's `ast` module to ensure safety (blocking hazardous operations) before execution. 
+- **JSON Schema Standardization**: Executed script outputs are sanitized to remove redundant columns (e.g., duplicated `resourceId`, `state`) ensuring clean, unified rendering in frontend tables.
+
+### 3. Frontend (`d:\FinOpsDashboard\frontend`)
+- **Framework & Tools**: React 19, Vite, React Router DOM, Axios, Recharts for data visualization.
+- **Core Modules (`frontend/src/pages/` & `components/`)**:
+  - **Overview (`Overview.jsx`)**: Executive dashboard featuring dynamic Recharts visualizations. It implements advanced context-aware navigation (`useLocation` routing) where clicking KPI cards (e.g., Top Opportunities, Potential Savings Donut) automatically routes users to the Approval Dashboard pre-filtered for those specific scripts.
+  - **Savings Breakdown Modal**: A two-tab modal dividing savings into "Potential Savings" (tickets not yet completed) and "Estimated Savings Achieved" (completed tickets), acting as deep-links into the Approval workflow.
+  - **Approval Dashboard (`ApprovalDashboard.jsx`)**: Manager interface for reviewing tickets, viewing exact CUR-based cost impacts, approving actions, and assigning tickets to engineers.
+  - **My Assignments (`MyAssignments.jsx`)**: Dedicated engineer view to execute assigned remediations and mark them as `Completed`.
+  - **Ticket Results (`Results.jsx`)**: Dynamic, searchable data tables rendering the raw JSON outputs of FinOps scans.
+
+## Running the Application
+- **Backend Server**: `cd backend && uvicorn main:app --reload` (Port 8000)
+- **Frontend Server**: `cd frontend && npm run dev` (Port 5173)
+
+## Architectural Rules & Workflows
+- **Data Tethering**: All cloud configurations, tickets, and metrics are strictly tied to the specific 12-digit AWS Account ID to prevent cross-contamination.
+- **State & UI Integrity**: 
+  - Strict CSS handling (`break-word`) for lengthy script dropdown names.
+  - Smart API cancellation (`AbortController`) to prevent async race conditions when rapidly switching between active AWS accounts in the global header.
+  - Careful UI stacking (z-index) ensures Recharts tooltips display accurately above modals and custom dropdowns.

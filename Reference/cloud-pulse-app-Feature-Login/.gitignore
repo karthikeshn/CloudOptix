@@ -1,0 +1,21 @@
+# Node / React
+node_modules/
+build/
+dist/
+.env
+
+# Python / Backend
+__pycache__/
+*.pyc
+venv/
+env/
+.venv/
+inventory.db
+inventory.db-wal
+inventory.db-shm
+scratch/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

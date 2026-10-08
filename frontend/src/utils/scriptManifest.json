@@ -1,0 +1,294 @@
+{
+  "AMIBackedSnapshot.py": {
+    "category": "Snapshots & Backups",
+    "service": "EC2"
+  },
+  "backfill_cur_costs.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "BackupPlanwithCross-RegionCopies.py": {
+    "category": "Snapshots & Backups",
+    "service": "AWS Backup"
+  },
+  "BackupRecoveryPointwithLifecycle.py": {
+    "category": "Snapshots & Backups",
+    "service": "AWS Backup"
+  },
+  "BucketKeysOptimization.py": {
+    "category": "Storage & Volumes",
+    "service": "S3"
+  },
+  "CloudFormationStackwithFailedResources.py": {
+    "category": "Compute & Management",
+    "service": "CloudFormation"
+  },
+  "CloudFrontOverprovisionedCache.py": {
+    "category": "Networking & IP",
+    "service": "CloudFront"
+  },
+  "CloudfrontPriceClassOversized.py": {
+    "category": "Networking & IP",
+    "service": "CloudFront"
+  },
+  "CloudfrontVpcOriginIdle.py": {
+    "category": "Networking & IP",
+    "service": "CloudFront"
+  },
+  "Cloudwatch Dashboard Beyond Free Tier Idle.py": {
+    "category": "Analytics & Security",
+    "service": "CloudWatch"
+  },
+  "CloudwatchCustomMetricsCardinality  .py": {
+    "category": "Analytics & Security",
+    "service": "CloudWatch"
+  },
+  "CloudwatchDashboardBeyondFreeTierIdle.py": {
+    "category": "Analytics & Security",
+    "service": "CloudWatch"
+  },
+  "CloudwatchHighResolutionOveruse  .py": {
+    "category": "Analytics & Security",
+    "service": "CloudWatch"
+  },
+  "Codepipeline Low Execution Count.py": {
+    "category": "Compute & Management",
+    "service": "CodePipeline"
+  },
+  "CodePipeline Missing Cost Controls.py": {
+    "category": "Compute & Management",
+    "service": "CodePipeline"
+  },
+  "Codepipeline Not Updated For Last 90 Days.py": {
+    "category": "Compute & Management",
+    "service": "CodePipeline"
+  },
+  "Codepipeline V2 Active Pipeline Never Executed.py": {
+    "category": "Compute & Management",
+    "service": "CodePipeline"
+  },
+  "Cold Start Or Low Usage Lambda.py": {
+    "category": "Compute & Management",
+    "service": "Lambda"
+  },
+  "Compute Optimizer Asg Automation Disabled.py": {
+    "category": "Compute & Management",
+    "service": "Compute Optimizer"
+  },
+  "Convert IPV4 to IPV6.py": {
+    "category": "Networking & IP",
+    "service": "VPC"
+  },
+  "Cross Region Data Transfer.py": {
+    "category": "Networking & IP",
+    "service": "VPC"
+  },
+  "Data Transfer Optimization.py": {
+    "category": "Networking & IP",
+    "service": "VPC"
+  },
+  "Delete Non-production Backup Plan.py": {
+    "category": "Snapshots & Backups",
+    "service": "AWS Backup"
+  },
+  "Delete or Move to Archive Tier.py": {
+    "category": "Storage & Volumes",
+    "service": "S3 Glacier"
+  },
+  "Delete Stopped RDS instances.py": {
+    "category": "Databases & Cache",
+    "service": "RDS"
+  },
+  "Delete the Snapshot and AMI as it is Not production.py": {
+    "category": "Snapshots & Backups",
+    "service": "EC2"
+  },
+  "Disk Over provisioned.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "download_cur.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "DynamoDB Unused Low Table Activity.py": {
+    "category": "Databases & Cache",
+    "service": "DynamoDB"
+  },
+  "EBS gp2 to gp3 Optimizatio.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "EBS Volume Stopped.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "EBSunattached.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "EC2 Instance Connect Endpoint Idle.py": {
+    "category": "Compute & Management",
+    "service": "EC2"
+  },
+  "ECRRepositoryLowPullCount.py": {
+    "category": "Storage & Volumes",
+    "service": "ECR"
+  },
+  "Efs Lifecycle Policy Missing.py": {
+    "category": "Storage & Volumes",
+    "service": "EFS"
+  },
+  "Efs Unused Old Access Point.py": {
+    "category": "Storage & Volumes",
+    "service": "EFS"
+  },
+  "Egress Heavy Without VPC endpoints.py": {
+    "category": "Networking & IP",
+    "service": "VPC"
+  },
+  "Eks Access Entries Unused.py": {
+    "category": "Compute & Management",
+    "service": "EKS"
+  },
+  "EKS Combined Savings.py": {
+    "category": "Compute & Management",
+    "service": "EKS"
+  },
+  "EKS Nodegroup Instance Type Mismatch.py": {
+    "category": "Compute & Management",
+    "service": "EKS"
+  },
+  "Elastic Cache Cluster Low CPU Utilization.py": {
+    "category": "Databases & Cache",
+    "service": "ElastiCache"
+  },
+  "Elastic Cache Valkey migration.py": {
+    "category": "Databases & Cache",
+    "service": "ElastiCache"
+  },
+  "ElasticSearch Using GP2.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "Enable Predictive Scaling.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "Excessive Access Analyzer Findings.py": {
+    "category": "Compute & Management",
+    "service": "IAM"
+  },
+  "Excessive Backup Retention Identified.py": {
+    "category": "Snapshots & Backups",
+    "service": "AWS Backup"
+  },
+  "extract.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "FetchCURReportLocal.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "fix_missing.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "fix_syntax.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "fix_syntax2.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "Global Accelerator No Traffic.py": {
+    "category": "Networking & IP",
+    "service": "Global Accelerator"
+  },
+  "Glue Database Empty.py": {
+    "category": "Analytics & Security",
+    "service": "Glue"
+  },
+  "Glue ETL Rightsizing.py": {
+    "category": "Analytics & Security",
+    "service": "Glue"
+  },
+  "Glue Job Low Execution Count.py": {
+    "category": "Analytics & Security",
+    "service": "Glue"
+  },
+  "Glue Unused Job Review.py": {
+    "category": "Analytics & Security",
+    "service": "Glue"
+  },
+  "glue_crawler_never_run.csv.py": {
+    "category": "Analytics & Security",
+    "service": "Glue"
+  },
+  "GP2 to GP3 Migration.py": {
+    "category": "Storage & Volumes",
+    "service": "EBS"
+  },
+  "Guardduty Eks Protection Idle.py": {
+    "category": "Compute & Management",
+    "service": "EKS"
+  },
+  "Guardduty Malware Protection Idle.py": {
+    "category": "Analytics & Security",
+    "service": "GuardDuty"
+  },
+  "Guardduty S3 Protection Idle.py": {
+    "category": "Storage & Volumes",
+    "service": "S3"
+  },
+  "High Egress Without Vpc Endpoints.py": {
+    "category": "Networking & IP",
+    "service": "VPC"
+  },
+  "Idle Kinesis Stream.py": {
+    "category": "Analytics & Security",
+    "service": "Kinesis"
+  },
+  "Idle Load Balancer (Low Request Count).py": {
+    "category": "Networking & IP",
+    "service": "ELB"
+  },
+  "Kinesis Stream Low Data Volume.py": {
+    "category": "Analytics & Security",
+    "service": "Kinesis"
+  },
+  "Lambda Arm (Graviton) Migration Opportunity.py": {
+    "category": "Compute & Management",
+    "service": "Lambda"
+  },
+  "MissingLifeCyclePolicy.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "newscript.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "refactor_export.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "S3MissingLifecyclePolicy.py": {
+    "category": "Storage & Volumes",
+    "service": "S3"
+  },
+  "test_safe_script.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "test_unsafe_script.py": {
+    "category": "Other",
+    "service": "Other"
+  },
+  "ec2_graviton_migration.py": {
+    "category": "Compute & Management",
+    "service": "EC2"
+  }
+}

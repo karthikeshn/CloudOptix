@@ -1,0 +1,7 @@
+To add a new CUR (Cost and Usage Report) without modifying any code, here are the exact steps based on how the system is currently configured:
+
+Download the Report: Download your new AWS CUR data as a standard CSV file.
+Compress it to ZIP: Compress that CSV file into a ZIP archive. Ensure the filename ends specifically with .csv.zip (for example, november_billing.csv.zip).
+Place it in the Target Directory: Move or copy that new .csv.zip file into this exact folder path on your machine: d:\FinOpsDashboard\Cur report (Note: The system is hardcoded to look inside this specific folder for any files matching *.csv.zip)
+Restart the Backend: Because the backend caches the CUR data in memory to keep the dashboard fast, you'll need to restart your Python FastAPI server (uvicorn main:app --reload) so it clears the cache and reads the newly added zip file.
+Once you restart, the system will automatically parse the new report alongside the existing ones!

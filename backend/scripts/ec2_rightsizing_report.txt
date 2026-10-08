@@ -1,0 +1,2 @@
+resourceId	description	currentMonthlyCost	estimatedMonthlySavings
+i-0abcd1234efgh5678	AWS Compute Optimizer identified i-0abcd1234efgh5678 (t3.xlarge) as OVER_PROVISIONED. Changing to t4g.medium is the optimal recommendation to reduce costs without impacting performance. | currentInstanceType: t3.xlarge | targetInstanceType: t4g.medium	100.44	45.2

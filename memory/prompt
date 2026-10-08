@@ -1,0 +1,59 @@
+# AI Prompt for Generating New FinOps Scripts
+
+Copy and paste the entire block below into ChatGPT or Gemini whenever you want to generate a brand new FinOps Optimization or Deletion script for this dashboard. 
+
+It contains the exact architectural constraints required to make the script work perfectly with your modular pipeline!
+
+---
+
+### Copy this prompt:
+
+```text
+Act as an Expert AWS FinOps Engineer. I need you to write a Python-based FinOps ticket generation script for my custom dashboard pipeline. 
+
+The task is to identify: [INSERT YOUR GOAL HERE, e.g., "Idle RDS Instances that haven't had connection in 7 days and can be stopped"].
+
+My FinOps pipeline uses a strictly modular architecture. You must output exactly TWO Python files:
+1. The Analysis Script (e.g., `rds_idle_instances.py`)
+2. The Pricing Plugin (e.g., `rds_idle_pricing.py`)
+
+### FILE 1: The Analysis Script
+This script must strictly handle RESOURCE DISCOVERY ONLY. 
+Rules for this script:
+1. Use `boto3` to scan all regions and identify the violating resources based on the prompt goal.
+2. ALWAYS use `boto3` paginators (e.g., `get_paginator()`) for AWS API calls to ensure no resources are missed in large accounts.
+3. `evaluate_resource` MUST return a simple dictionary containing only the raw metrics (e.g. `resource_id`, `size_gb`) OR return `None` if the resource is optimized. Do NOT build the final 30-column format here.
+4. Pass the list of raw metric dictionaries to the Pricing Plugin you create in File 2.
+5. The Pricing Plugin will return the exact same dictionaries but with `currentDailyCost`, `currentMonthlyCost`, and `estimatedMonthlySavings` added. 
+6. AFTER pricing is complete, pass the enriched dictionaries to a `build_finding` or `format_finding` function that constructs the massive 30-column dictionary for export.
+7. The final finding dictionary MUST contain EXACTLY these keys before exporting to a Pandas DataFrame:
+   ["id", "title", "category", "owner", "assignedTo", "status", "accountId", "region", "resourceId", "resourceArn", "service", "type", "policy", "effortLevel", "message", "recommendation", "description", "currentDailyCost", "currentMonthlyCost", "estimatedMonthlySavings", "approvalComments", "reasonForRejection", "achievedSavingsMonthly", "month"]
+8. Use `pandas` to export the findings to `.xlsx`.
+
+### FILE 1 STRUCTURE REQUIREMENTS
+Your Analysis Script MUST follow this exact structural pattern:
+- `def fetch_resources(client, region_name):` -> Returns a list of raw boto3 resources.
+- `def evaluate_resource(resource, account_id, region_name):` -> Returns a simple dictionary of extracted technical metrics (Filter Early, do NOT format for export here).
+- `def build_finding(priced_resource):` -> Takes an enriched dictionary from the pricing plugin and builds the final 30-column dictionary.
+- `def export_to_excel(findings, output_file):` -> Takes the list of 30-column findings and uses pandas to export.
+- `def main(account_id, role_arn=None):` -> Orchestrates the pipeline: Fetch -> Evaluate -> Price -> Build Finding -> Export.
+
+### FILE 2: The Pricing Plugin
+This script must strictly handle FINANCIAL MATH ONLY.
+Rules for this script:
+1. It must expose a single function: `calculate_savings(discovered_resources, account_id=None)`
+2. The `discovered_resources` argument will be the list of dicts passed from File 1.
+3. For every resource, calculate the `fallback_current_cost` (using estimated AWS rates). Note: If you need theoretical rates, instruct the user to add them to `utils/aws_pricing.py` and import them, rather than hardcoding them in this plugin.
+4. Fetch the true historical cost by calling: 
+   `current_cost = cur_integration.get_historical_cost(resource_id=resource_id, account_id=account_id, fallback_cost=fallback_current_cost)`
+   (Assume `utils.cur_integration` is importable via `sys.path.append`).
+5. Calculate the `projected_cost` (e.g. $0 if it's a deletion, or complex math if it's an optimization/rightsize).
+6. Calculate `savings = current_cost - projected_cost`.
+7. Add these exact keys to the resource dictionary as formatted strings (e.g., "$120.00"):
+   - `currentDailyCost` (current_cost / 30)
+   - `currentMonthlyCost`
+   - `estimatedMonthlySavings`
+8. Return the enriched list.
+
+Please output the complete, production-ready code for BOTH files.
+```
