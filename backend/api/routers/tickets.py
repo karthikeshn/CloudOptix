@@ -113,6 +113,16 @@ def assign_ticket(
     db.commit()
     db.refresh(ticket)
     
+    # 💥 FIRE OFF THE AUTOMATED EMAIL TO THE ENGINEER
+    try:
+        from utils.email_service import send_assignment_email
+        savings = f"${ticket.potential_savings}" if ticket.potential_savings else "Unknown"
+        # We use a dummy email if engineer doesn't have one set up yet
+        engineer_email = engineer.username + "@example.com" 
+        send_assignment_email(engineer_email, ticket.script_name, savings, ticket.id)
+    except Exception as e:
+        print(f"Failed to send assignment email: {e}")
+    
     return ticket
 
 @router.put("/{ticket_id}/details", response_model=schemas.TicketResponse)

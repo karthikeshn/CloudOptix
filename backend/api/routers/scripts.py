@@ -127,10 +127,27 @@ def run_script(script_name: str, payload: RunScriptRequest = None, current_user:
             if config.region:
                 env_vars["AWS_REGION"] = config.region
                 env_vars["AWS_DEFAULT_REGION"] = config.region
+            if config.aws_account_id:
+                env_vars["MOCK_AWS_ACCOUNT_ID"] = config.aws_account_id
     
     try:
         start_time = time.time()
-        result = subprocess.run(["python", script_path], capture_output=True, text=True, env=env_vars, cwd=scripts_dir)
+        
+        actual_script_path = script_path
+        actual_cwd = scripts_dir
+        
+        # --- BR-MOTO HARDCODED TEST REDIRECT ---
+        # Since this branch is purely for testing, we just hardcode the redirect directly!
+        if "delete stopped rds" in script_name.lower():
+            project_root = os.path.dirname(os.path.dirname(scripts_dir))
+            test_script = os.path.join(project_root, "test", "test_stopped_rds.py")
+            if os.path.exists(test_script):
+                actual_script_path = test_script
+                actual_cwd = project_root
+                print(f"[Test Branch] Hardcoded redirect. Running test script: {test_script}")
+        # ----------------------------------------
+        
+        result = subprocess.run(["python", actual_script_path], capture_output=True, text=True, env=env_vars, cwd=actual_cwd)
         
         if result.returncode != 0:
             error_msg = result.stderr
@@ -153,6 +170,33 @@ def run_script(script_name: str, payload: RunScriptRequest = None, current_user:
         recent_files = [f for f in output_files if os.path.getmtime(f) >= start_time - 2.0]
         
         if not recent_files:
+            # --- DB-First Architecture Support ---
+            # The new scripts don't output CSVs! They save straight to the DB.
+            base_script_name = script_name.replace(".py", "")
+            
+            # CRITICAL: SQLite uses Repeatable Read isolation. We must COMMIT our current open transaction 
+            # so the next query starts a fresh transaction and sees the rows inserted by the subprocess!
+            db.commit()
+            
+            tickets = db.query(models.Ticket).filter(
+                models.Ticket.script_name == base_script_name,
+                models.Ticket.account_id == (payload.account_id if payload else None)
+            ).all()
+            
+            if tickets:
+                data = []
+                for t in tickets:
+                    row = {"resourceId": t.resource_id, "estimatedMonthlySavings": t.potential_savings}
+                    if t.details:
+                        try:
+                            row.update(json.loads(t.details))
+                        except Exception:
+                            pass
+                    data.append(row)
+                print(f"[DEBUG] Returning data length: {len(data)}")
+                return {"data": data, "filename": "DB_Native_Storage"}
+                
+            print(f"[DEBUG] Returning empty data")
             return {"data": []}
             
         latest_file = max(recent_files, key=os.path.getmtime)

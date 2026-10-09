@@ -4,8 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Load the database URL from the environment (e.g. from a .env file loaded by your app or test runner)
-# If it doesn't exist, fall back to the production finops_v4.db
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./data/finops_v4.db")
+# On the br-moto branch, we default to the test database so FastAPI and the scripts are synced!
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./data/test_finops.db")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
