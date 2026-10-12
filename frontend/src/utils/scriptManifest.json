@@ -267,6 +267,10 @@
     "category": "Other",
     "service": "Other"
   },
+  "OrphanedSnapshot.py": {
+    "category": "Snapshots & Backups",
+    "service": "EBS"
+  },
   "newscript.py": {
     "category": "Other",
     "service": "Other"

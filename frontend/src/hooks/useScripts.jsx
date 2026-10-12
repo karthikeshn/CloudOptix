@@ -18,6 +18,7 @@ export const ScriptsProvider = ({ token, children }) => {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentScript: '', completedCount: 0 });
   const [batchSummary, setBatchSummary] = useState(null);
   const [selectedScripts, setSelectedScripts] = useState([]);
+  const [useMoto, setUseMoto] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -61,7 +62,7 @@ export const ScriptsProvider = ({ token, children }) => {
     try {
       const res = await axios.post(
         `http://localhost:8000/api/scripts/${encodeURIComponent(scriptName)}/run`,
-        { account_id: selectedAccountId || null },
+        { account_id: selectedAccountId || null, use_moto: useMoto },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -100,7 +101,7 @@ export const ScriptsProvider = ({ token, children }) => {
       try {
         const res = await axios.post(
           `http://localhost:8000/api/scripts/${encodeURIComponent(scriptName)}/run`,
-          { account_id: selectedAccountId || null },
+          { account_id: selectedAccountId || null, use_moto: useMoto },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         completed++;
@@ -154,7 +155,8 @@ export const ScriptsProvider = ({ token, children }) => {
       runningScript, activeScript, tableData, resultFilename,
       isBatchRunning, batchProgress, batchSummary, setBatchSummary,
       runScript, runBatchScripts, downloadCSV,
-      selectedScripts, setSelectedScripts
+      selectedScripts, setSelectedScripts,
+      useMoto, setUseMoto
     }}>
       {children}
     </ScriptsContext.Provider>

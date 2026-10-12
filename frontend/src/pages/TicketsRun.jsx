@@ -16,7 +16,8 @@ export default function TicketsRun({ token, userRole }) {
     runningScript, activeScript, tableData, resultFilename,
     isBatchRunning, batchProgress, batchSummary, setBatchSummary,
     runScript, runBatchScripts, downloadCSV,
-    selectedScripts, setSelectedScripts
+    selectedScripts, setSelectedScripts,
+    useMoto, setUseMoto
   } = useScripts();
 
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -126,7 +127,32 @@ export default function TicketsRun({ token, userRole }) {
                : 'Unverified/Invalid') 
             : 'No active environment configured'
         }</span>
+
+        {/* --- USE MOTO / MOCK MODE TOGGLE --- */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, color: useMoto ? '#38bdf8' : 'var(--text-muted)', cursor: 'pointer' }}>
+            {useMoto ? '⚡ MOCK MODE (MOTO ACTIVE)' : '🌐 REAL AWS CLOUD'}
+          </label>
+          <div 
+            onClick={() => setUseMoto(!useMoto)}
+            style={{
+              width: '42px', height: '22px', borderRadius: '12px',
+              background: useMoto ? '#0284c7' : 'rgba(255,255,255,0.15)',
+              position: 'relative', cursor: 'pointer', transition: 'background 0.25s',
+              border: `1px solid ${useMoto ? '#38bdf8' : 'rgba(255,255,255,0.2)'}`
+            }}
+          >
+            <div style={{
+              width: '16px', height: '16px', borderRadius: '50%',
+              background: '#fff', position: 'absolute', top: '2px',
+              left: useMoto ? '22px' : '3px',
+              transition: 'left 0.25s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+            }} />
+          </div>
+        </div>
       </div>
+
 
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', flexWrap: 'wrap', background: 'rgba(15, 23, 42, 0.4)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
         

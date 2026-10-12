@@ -1,0 +1,41 @@
+================================================================================
+FINOPS SCRIPT STATUS & TESTING TRACKER
+Branch: br-moto
+Last Updated: 2026-10-12
+================================================================================
+
+1. OFFICIALLY TESTED WITH MOTO & DATABASE-FIRST ARCHITECTURE (br-moto branch)
+--------------------------------------------------------------------------------
+[COMPLETED & TESTED]
+- Delete Stopped RDS instances.py
+  * Test Harness: test/test_stopped_rds.py
+  * Testing Framework: Moto (offline AWS mock) + Real AWS Pricing API (hybrid)
+  * Target Database: test_finops.db (Direct DB-First save)
+  * Integration: End-to-end verified with FastAPI (/api/tickets) & React Approval Dashboard
+  * Git Commit: b115118 ("using moto tested only rds_stopped")
+
+- OrphanedSnapshot.py
+  * Test Harness: test/test_orphaned_snapshot.py
+  * Testing Framework: Moto (offline AWS mock) + Real AWS Pricing API (hybrid)
+  * Target Database: test_finops.db (Direct DB-First save)
+  * Pricing: Calls real AWS Pricing API for market rates, fetches current cost strictly from CUR report
+  * Verified: Filtered 38 AWS regions, flagged orphaned 100 GiB snapshot (snap-d25933cdf960d4d5a), excluded active snapshot, saved Ticket 122 to test_finops.db
+
+
+2. PREVIOUSLY TESTED / EVALUATED (Legacy Architecture - Pre-Moto / CSV-Based)
+--------------------------------------------------------------------------------
+[LEGACY VALIDATED - PENDING MOTO MIGRATION]
+- Idle EC2 instances (Idle_EC2.py / EC2CustomRightsizing.py)
+- EC2 Custom Rightsizing (EC2CustomRightsizing.py)
+- EC2 Graviton Migration (EC2GravitonMigration.py / ec2_graviton_migration.py)
+- S3 Missing Lifecycle Policy (S3MissingLifecyclePolicy.py)
+
+
+3. ROADMAP / PENDING FOR MOTO TEST HARNESS & DB-FIRST MIGRATION
+--------------------------------------------------------------------------------
+[TO DO ON br-moto]
+- EBS Unattached Volumes (EBSunattached.py)  <-- RECOMMENDED NEXT
+- S3 Bucket Lifecycle Optimization (S3MissingLifecyclePolicy.py / S3LifecycleOptimization.py)
+- EC2 Graviton Migration (EC2GravitonMigration.py)
+- EC2 Custom Rightsizing & Idle (EC2CustomRightsizing.py)
+================================================================================

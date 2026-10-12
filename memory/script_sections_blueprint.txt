@@ -1,0 +1,240 @@
+# ==============================================================================
+# FINOPS SCRIPT ARCHITECTURE BLUEPRINT & STANDARD SECTIONS
+# Reference Example: backend/scripts/delete_stopped_rds.py
+# Last Updated: 2026-10-12
+# ==============================================================================
+
+This document defines the mandatory blueprint, structure, and standards for creating 
+any new AWS FinOps optimization script in the CloudOptix platform. Every script must 
+follow this standard architecture so that it works seamlessly with the backend 
+FastAPI services, SQLite database, and React frontend approval workflow.
+
+--------------------------------------------------------------------------------
+1. THE 5-PHASE EXECUTION PIPELINE
+--------------------------------------------------------------------------------
+Every script executes in 5 sequential stages:
+  1. Multi-Region Discovery: Queries all enabled AWS regions for the account.
+  2. Resource Evaluation: Filters resources matching FinOps waste criteria.
+  3. Pricing Engine: Enriches resources with historical CUR and AWS Pricing API data.
+  4. Database-First Save: Writes actionable tickets directly to SQLite (Ticket model).
+  5. UI Presentation: Approval Dashboard renders tickets and dynamic JSON metadata.
+
+--------------------------------------------------------------------------------
+2. THE 6 MANDATORY SCRIPT SECTIONS
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+SECTION 1: Imports & Environment Configuration
+--------------------------------------------------------------------------------
+Purpose:
+  Imports required libraries, sets up system pathing to import backend modules,
+  and imports the database session and ORM models.
+
+Key Rules:
+  - Add backend root directory to `sys.path` so scripts can be run standalone 
+    or imported as modules.
+  - Import `SessionLocal`, `Ticket`, and `CloudConfig` from backend.
+  - Import the corresponding pricing engine module.
+
+Example:
+```python
+import os
+import sys
+import json
+import boto3
+from datetime import datetime
+
+# Ensure backend root directory is on sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
+
+from core.database import SessionLocal
+from models import Ticket, CloudConfig
+from scripts.<script_name>_pricing import calculate_savings
+```
+
+--------------------------------------------------------------------------------
+SECTION 2: Resource Discovery (fetch_resources)
+--------------------------------------------------------------------------------
+Purpose:
+  Scans an AWS service within a specific region and fetches all relevant resources.
+
+Key Rules:
+  - ALWAYS use Boto3 Paginators (`client.get_paginator(...)`).
+  - Never assume an API call returns all records in a single page.
+  - Keep this function focused purely on fetching raw resource data from AWS.
+
+Example:
+```python
+def fetch_resources(client):
+    """Scans AWS for all resources using standard boto3 paginators."""
+    resources = []
+    paginator = client.get_paginator('describe_volumes') # e.g. for EBS
+    for page in paginator.paginate():
+        resources.extend(page.get('Volumes', []))
+    return resources
+```
+
+--------------------------------------------------------------------------------
+SECTION 3: Policy Rule Evaluation (evaluate_resource)
+--------------------------------------------------------------------------------
+Purpose:
+  Applies the FinOps optimization logic to determine if a resource is wasting money.
+
+Key Rules:
+  - Return `None` if the resource is healthy or active (not a waste candidate).
+  - If it violates the policy, return a structured dictionary containing all metadata 
+    needed for pricing calculations and display in the approval dashboard.
+  - Always extract the exact AWS resource identifier format expected by AWS CUR 
+    (e.g., EBS uses `vol-xxxx`, RDS uses the full ARN).
+
+Example:
+```python
+def evaluate_resource(resource, account_id, region_name):
+    """FinOps Rule: Identify resources violating the cost policy."""
+    status = resource.get('State') # e.g. 'available' for unattached EBS
+    
+    if status != 'available':
+        return None  # Healthy/Attached, skip
+        
+    return {
+        'account_id': account_id,
+        'region': region_name,
+        'resource_id': resource.get('VolumeId'),
+        'volume_type': resource.get('VolumeType'),
+        'size_gb': resource.get('Size'),
+        'iops': resource.get('Iops', 0),
+        'created_time': str(resource.get('CreateTime'))
+    }
+```
+
+--------------------------------------------------------------------------------
+SECTION 4: Pricing Enrichment (calculate_savings)
+--------------------------------------------------------------------------------
+Purpose:
+  Calculates the current spend and estimated monthly savings.
+
+Key Rules:
+  - Look up historical actual spend from the local AWS Cost & Usage Report (CUR) 
+    via `cur_processor.get_historical_cost()`.
+  - Calculate projected cost if the recommended action is taken (e.g., $0 for deletion,
+    or discounted price for right-sizing / Graviton).
+  - Add standard fields:
+    * `currentMonthlyCost`: formatted currency string (e.g. "$45.00")
+    * `estimatedMonthlySavings`: formatted currency string (e.g. "$45.00")
+
+--------------------------------------------------------------------------------
+SECTION 5: Direct Database Persistence (save_to_database)
+--------------------------------------------------------------------------------
+Purpose:
+  Persists findings directly to the SQLite `tickets` table without relying on 
+  intermediate Excel or CSV files.
+
+CRITICAL DATABASE CONSTRAINTS:
+  1. `Ticket.created_at` MUST be an ISO timestamp string:
+     `datetime.utcnow().isoformat() + "Z"`
+     (If None, FastAPI throws a 500 ResponseValidationError).
+  2. `Ticket.details` MUST be a serialized JSON string:
+     `json.dumps(finding)`
+     (This allows the React UI to dynamically render all columns specific to this service).
+  3. `Ticket.potential_savings` should be numeric string without currency symbols:
+     `str(finding.get('estimatedMonthlySavings', '0')).replace('$', '')`
+
+Example:
+```python
+def save_to_database(findings):
+    """Saves findings directly into SQLite database as FinOps tickets."""
+    if not findings:
+        print("No violating resources found.")
+        return
+        
+    db = SessionLocal()
+    try:
+        account_id_str = findings[0]['account_id']
+        account = db.query(CloudConfig).filter(CloudConfig.aws_account_id == account_id_str).first()
+        if not account:
+            account = CloudConfig(aws_account_id=account_id_str, provider="AWS", account_name="Test Account")
+            db.add(account)
+            db.commit()
+            db.refresh(account)
+
+        for finding in findings:
+            ticket = Ticket(
+                script_name="<Script Display Name>",
+                account_id=account.id,
+                resource_id=finding.get('resource_id', 'unknown'),
+                potential_savings=str(finding.get('estimatedMonthlySavings', '0')).replace('$', ''),
+                status="Pending",
+                details=json.dumps(finding),  # Serialized JSON for dynamic columns
+                recommended_action="<Action Description>",
+                created_at=datetime.utcnow().isoformat() + "Z"  # Mandatory ISO timestamp
+            )
+            db.add(ticket)
+        db.commit()
+        print(f"Successfully saved {len(findings)} tickets to the database!")
+    except Exception as e:
+        print(f"Database error: {e}")
+    finally:
+        db.close()
+```
+
+--------------------------------------------------------------------------------
+SECTION 6: Orchestration Main Function (main(account_id))
+--------------------------------------------------------------------------------
+Purpose:
+  The entry point that coordinates the workflow across all enabled AWS regions.
+
+Key Rules:
+  - Accept `account_id` as an argument.
+  - Dynamically query active AWS regions using `ec2.describe_regions()`.
+  - Loop through each region, call `fetch_resources()`, evaluate findings, 
+    enrich with pricing, and invoke `save_to_database()`.
+
+Example:
+```python
+def main(account_id):
+    # 1. Dynamically retrieve active AWS regions
+    base_ec2 = boto3.client('ec2', region_name='us-east-1')
+    try:
+        regions = [r["RegionName"] for r in base_ec2.describe_regions().get("Regions", [])]
+    except Exception:
+        regions = ["us-east-1"]
+        
+    evaluated_resources = []
+    
+    # 2. Iterate each region
+    for region_name in regions:
+        client = boto3.client('<service>', region_name=region_name)
+        raw_resources = fetch_resources(client)
+        
+        for r in raw_resources:
+            evaluated = evaluate_resource(r, account_id, region_name)
+            if evaluated:
+                evaluated_resources.append(evaluated)
+                
+    if not evaluated_resources:
+        print("No violating resources found.")
+        return
+        
+    # 3. Enrich with pricing calculations
+    priced_resources = calculate_savings(evaluated_resources, account_id)
+    
+    # 4. Save directly into database
+    save_to_database(priced_resources)
+
+if __name__ == "__main__":
+    test_account = os.environ.get("MOCK_AWS_ACCOUNT_ID", "123456789012")
+    main(test_account)
+```
+
+--------------------------------------------------------------------------------
+3. TESTING REQUIREMENT FOR NEW SCRIPTS
+--------------------------------------------------------------------------------
+Whenever a script is created or updated, a companion test script must be created in `test/`:
+  - Name: `test/test_<script_name>.py`
+  - Framework: `moto` (mock_aws) to create mock resources in RAM for zero AWS charges.
+  - Pricing Pause: Use Moto Firewall Pause (`mock.stop()` / `mock.start()`) around 
+    `calculate_savings` so real AWS Pricing API requests can reach the public internet.
+  - CUR Injection: Synthesize mock CUR CSV zip records using `setup_fake_cur()`.
+==============================================================================

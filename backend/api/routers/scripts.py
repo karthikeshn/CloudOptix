@@ -27,6 +27,7 @@ class ValidateScriptsRequest(BaseModel):
 
 class RunScriptRequest(BaseModel):
     account_id: int | None = None
+    use_moto: bool = False
 
 def get_scripts_dir():
     # Since this file is in backend/api/routers, the scripts dir is ../../scripts
@@ -136,16 +137,29 @@ def run_script(script_name: str, payload: RunScriptRequest = None, current_user:
         actual_script_path = script_path
         actual_cwd = scripts_dir
         
-        # --- BR-MOTO HARDCODED TEST REDIRECT ---
-        # Since this branch is purely for testing, we just hardcode the redirect directly!
-        if "delete stopped rds" in script_name.lower():
-            project_root = os.path.dirname(os.path.dirname(scripts_dir))
-            test_script = os.path.join(project_root, "test", "test_stopped_rds.py")
-            if os.path.exists(test_script):
-                actual_script_path = test_script
-                actual_cwd = project_root
-                print(f"[Test Branch] Hardcoded redirect. Running test script: {test_script}")
-        # ----------------------------------------
+        # --- MOTO / MOCK MODE REDIRECT ---
+        # When use_moto toggle is enabled, we route to the matching verified test harness in test/
+        # and ensure execution writes safely into test_finops.db!
+        project_root = os.path.dirname(os.path.dirname(scripts_dir))
+        if payload and payload.use_moto:
+            env_vars["DATABASE_URL"] = "sqlite:///d:/FinOpsDashboard/backend/data/test_finops.db"
+            env_vars["DATABASE_PATH"] = "d:/FinOpsDashboard/backend/data/test_finops.db"
+            env_vars["MOCK_AWS_ACCOUNT_ID"] = "123456789012"
+            
+            s_lower = script_name.lower()
+            if "delete stopped rds" in s_lower or "stopped_rds" in s_lower:
+                test_script = os.path.join(project_root, "test", "test_stopped_rds.py")
+                if os.path.exists(test_script):
+                    actual_script_path = test_script
+                    actual_cwd = project_root
+                    print(f"[Moto Mock Mode] Routing to test harness: {test_script}")
+            elif "orphaned" in s_lower or "snapshot" in s_lower:
+                test_script = os.path.join(project_root, "test", "test_orphaned_snapshot.py")
+                if os.path.exists(test_script):
+                    actual_script_path = test_script
+                    actual_cwd = project_root
+                    print(f"[Moto Mock Mode] Routing to test harness: {test_script}")
+        # -----------------------------------
         
         result = subprocess.run(["python", actual_script_path], capture_output=True, text=True, env=env_vars, cwd=actual_cwd)
         
